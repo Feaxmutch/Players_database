@@ -76,7 +76,7 @@
         {
             Console.Clear();
             ShowAllPlayers();
-            Console.Write("Введите id игрока для удаления: ");
+            Console.Write("Введите id игрока: ");
 
             if (int.TryParse(Console.ReadLine(), out int playerId))
             {
