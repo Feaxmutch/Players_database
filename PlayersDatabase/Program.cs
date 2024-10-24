@@ -5,7 +5,7 @@
         static void Main(string[] args)
         {
             Database database = new();
-            database.ShowMainMenu();
+            database.ShowMenu();
         }
     }
 
@@ -20,7 +20,7 @@
             _bannedPlayers = new List<Player>();
         }
 
-        public void ShowMainMenu()
+        public void ShowMenu()
         {
             const string CommandAddPlayer = "1";
             const string CommandRemovePlayer = "2";
@@ -41,19 +41,19 @@
                 switch (userCommand)
                 {
                     case CommandAddPlayer:
-                        ShowAddPlayerMenu();
+                        AddPlayer(GetNameFromUser(), GetStarLevelFromUser());
                         break;
 
                     case CommandRemovePlayer:
-                        ShowRemovePlayerMenu();
+                        RemovePlayer(GetIdFromUser());
                         break;
 
                     case CommandBanPlayer:
-                        ShowBanMenu();
+                        BanPlayer(GetIdFromUser());
                         break;
 
                     case CommandUnbanPlayer:
-                        ShowUnbanMenu();
+                        UnbanPlayer(GetIdFromUser());
                         break;
                 }
             }
@@ -72,22 +72,7 @@
             return false;
         }
 
-        private void ShowAddPlayerMenu()
-        {
-            Console.Clear();
-
-            Console.Write("Введите имя: ");
-            string name = Console.ReadLine();
-
-            Console.Write("Введите начальный уровень: ");
-
-            if (int.TryParse(Console.ReadLine(), out int startLevel))
-            {
-                AddPlayer(name, startLevel);
-            }
-        }
-
-        private void ShowRemovePlayerMenu()
+        private int GetIdFromUser()
         {
             Console.Clear();
             ShowAllPlayers();
@@ -95,8 +80,28 @@
 
             if (int.TryParse(Console.ReadLine(), out int playerId))
             {
-                RemovePlayer(playerId);
+                return playerId;
             }
+
+            return -1;
+        }
+
+        private string GetNameFromUser()
+        {
+            Console.Write("Введите имя: ");
+            return Console.ReadLine();
+        }
+
+        private int GetStarLevelFromUser()
+        {
+            Console.Write("Введите начальный уровень: ");
+
+            if (int.TryParse(Console.ReadLine(), out int startLevel))
+            {
+                return startLevel;
+            }
+
+            return -1;
         }
 
         private void AddPlayer(string name, int startLevel)
@@ -109,14 +114,14 @@
                 id = random.Next(0, int.MaxValue);
             }
 
-            _players.Add(new(name, startLevel, id, this));
+            _players.Add(new(name, startLevel, id));
         }
 
         private void RemovePlayer(int playerId)
         {
             if (TryGetPlayer(playerId, out Player player))
             {
-                if (player.IsBanned())
+                if (IsBanned(player.Id))
                 {
                     UnbanPlayer(player.Id);
                 }
@@ -147,39 +152,20 @@
 
         private void ShowAllPlayers()
         {
+            ConsoleColor defaultColor = Console.ForegroundColor;
+
             foreach (var player in _players)
             {
+                if (IsBanned(player.Id))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
                 player.ShowInfo();   
-            }
-        }
-
-        private void ShowBanMenu()
-        {
-            Console.Clear();
-            ShowAllPlayers();
-            Console.Write("Введите id игрока для бана: ");
-
-            if (int.TryParse(Console.ReadLine(), out int playerId))
-            {
-                if (PlayerExist(playerId))
-                {
-                    BanPlayer(playerId);
-                }
-            }
-        }
-
-        private void ShowUnbanMenu()
-        {
-            Console.Clear();
-            ShowAllPlayers();
-            Console.Write("Введите id игрока для разбана: ");
-
-            if (int.TryParse(Console.ReadLine(), out int playerId))
-            {
-                if (PlayerExist(playerId))
-                {
-                    UnbanPlayer(playerId);
-                }
             }
         }
 
@@ -187,7 +173,7 @@
         {
             if (TryGetPlayer(playerID, out Player player))
             {
-                if (player.IsBanned() == false)
+                if (IsBanned(player.Id) == false)
                 {
                     _bannedPlayers.Add(player);
                 }
@@ -198,7 +184,7 @@
         {
             if (TryGetPlayer(playerID, out Player player))
             {
-                if (player.IsBanned())
+                if (IsBanned(player.Id))
                 {
                     _bannedPlayers.Remove(player);
                 }
@@ -208,42 +194,22 @@
 
     public class Player
     {
-        Database _database;
-
-        public Player(string name, int startLevel, int id, Database database)
+        public Player(string name, int startLevel, int id)
         {
             Name = name;
             Level = startLevel;
             Id = id;
-            _database = database;
         }
 
-        public int Id { get; private set; }
+        public int Id { get; }
 
         public string Name { get; private set; }
 
         public int Level { get; private set; }
 
-        public bool IsBanned()
-        {
-            return _database.IsBanned(Id);
-        }
-
         public void ShowInfo()
         {
-            ConsoleColor defaultColor = Console.ForegroundColor;
-
-            if (IsBanned())
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.White;
-            }
-
             Console.WriteLine($"{Id} | {Name} | {Level} ");
-            Console.ForegroundColor = defaultColor;
         }
     }
 }
