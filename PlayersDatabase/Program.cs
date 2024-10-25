@@ -1,4 +1,6 @@
-﻿namespace PlayersDatabase
+﻿using System.Numerics;
+
+namespace PlayersDatabase
 {
     internal class Program
     {
@@ -43,32 +45,18 @@
                         break;
 
                     case CommandRemovePlayer:
-                        RemovePlayer(GetIdFromUser());
+                        RemovePlayer();
                         break;
 
                     case CommandBanPlayer:
-                        BanPlayer(GetIdFromUser());
+                        BanPlayer();
                         break;
 
                     case CommandUnbanPlayer:
-                        UnbanPlayer(GetIdFromUser());
+                        UnbanPlayer();
                         break;
                 }
             }
-        }
-
-        private int GetIdFromUser()
-        {
-            Console.Clear();
-            ShowAllPlayers();
-            Console.Write("Введите id игрока: ");
-
-            if (int.TryParse(Console.ReadLine(), out int playerId))
-            {
-                return playerId;
-            }
-
-            return -1;
         }
 
         private void AddPlayer()
@@ -92,22 +80,29 @@
             }
         }
 
-        private void RemovePlayer(int playerId)
+        private void RemovePlayer()
         {
-            if (TryGetPlayer(playerId, out Player player))
+            if (TryGetPlayer(out Player player))
             {
                 _players.Remove(player);
             }
         }
 
-        private bool TryGetPlayer(int playerId, out Player player)
+        private bool TryGetPlayer(out Player player)
         {
-            foreach (var currentPlayer in _players)
+            Console.Clear();
+            ShowAllPlayers();
+            Console.Write("Введите id игрока: ");
+
+            if (int.TryParse(Console.ReadLine(), out int playerId))
             {
-                if (currentPlayer.Id == playerId)
+                foreach (var currentPlayer in _players)
                 {
-                    player = currentPlayer;
-                    return true;
+                    if (currentPlayer.Id == playerId)
+                    {
+                        player = currentPlayer;
+                        return true;
+                    }
                 }
             }
 
@@ -117,7 +112,15 @@
 
         private bool PlayerExist(int playerId)
         {
-            return TryGetPlayer(playerId, out Player _);
+            foreach (var currentPlayer in _players)
+            {
+                if (currentPlayer.Id == playerId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void ShowAllPlayers()
@@ -128,9 +131,9 @@
             }
         }
 
-        private void BanPlayer(int playerID)
+        private void BanPlayer()
         {
-            if (TryGetPlayer(playerID, out Player player))
+            if (TryGetPlayer(out Player player))
             {
                 if (player.IsBanned == false)
                 {
@@ -139,9 +142,9 @@
             }
         }
 
-        private void UnbanPlayer(int playerID)
+        private void UnbanPlayer()
         {
-            if (TryGetPlayer(playerID, out Player player))
+            if (TryGetPlayer(out Player player))
             {
                 if (player.IsBanned)
                 {
