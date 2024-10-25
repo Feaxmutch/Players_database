@@ -12,12 +12,10 @@
     public class Database
     {
         private List<Player> _players;
-        private List<Player> _bannedPlayers;
 
         public Database()
         {
             _players = new List<Player>();
-            _bannedPlayers = new List<Player>();
         }
 
         public void ShowMenu()
@@ -41,7 +39,7 @@
                 switch (userCommand)
                 {
                     case CommandAddPlayer:
-                        AddPlayer(GetNameFromUser(), GetStarLevelFromUser());
+                        AddPlayer();
                         break;
 
                     case CommandRemovePlayer:
@@ -59,19 +57,6 @@
             }
         }
 
-        public bool IsBanned(int playerId)
-        {
-            foreach (var player in _bannedPlayers)
-            {
-                if (player.Id == playerId)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private int GetIdFromUser()
         {
             Console.Clear();
@@ -86,46 +71,31 @@
             return -1;
         }
 
-        private string GetNameFromUser()
+        private void AddPlayer()
         {
             Console.Write("Введите имя: ");
-            return Console.ReadLine();
-        }
+            string name = Console.ReadLine();
 
-        private int GetStarLevelFromUser()
-        {
             Console.Write("Введите начальный уровень: ");
 
             if (int.TryParse(Console.ReadLine(), out int startLevel))
             {
-                return startLevel;
+                Random random = new();
+                int id = random.Next(0, int.MaxValue);
+
+                while (PlayerExist(id))
+                {
+                    id = random.Next(0, int.MaxValue);
+                }
+
+                _players.Add(new(name, startLevel, id));
             }
-
-            return -1;
-        }
-
-        private void AddPlayer(string name, int startLevel)
-        {
-            Random random = new();
-            int id = random.Next(0, int.MaxValue);
-
-            while (PlayerExist(id))
-            {
-                id = random.Next(0, int.MaxValue);
-            }
-
-            _players.Add(new(name, startLevel, id));
         }
 
         private void RemovePlayer(int playerId)
         {
             if (TryGetPlayer(playerId, out Player player))
             {
-                if (IsBanned(player.Id))
-                {
-                    UnbanPlayer(player.Id);
-                }
-
                 _players.Remove(player);
             }
         }
@@ -145,26 +115,15 @@
             return false;
         }
 
-        private bool PlayerExist(int playerID)
+        private bool PlayerExist(int playerId)
         {
-            return TryGetPlayer(playerID, out Player _);
+            return TryGetPlayer(playerId, out Player _);
         }
 
         private void ShowAllPlayers()
         {
-            ConsoleColor defaultColor = Console.ForegroundColor;
-
             foreach (var player in _players)
             {
-                if (IsBanned(player.Id))
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-
                 player.ShowInfo();   
             }
         }
@@ -173,9 +132,9 @@
         {
             if (TryGetPlayer(playerID, out Player player))
             {
-                if (IsBanned(player.Id) == false)
+                if (player.IsBanned == false)
                 {
-                    _bannedPlayers.Add(player);
+                    player.Ban();
                 }
             }
         }
@@ -184,9 +143,9 @@
         {
             if (TryGetPlayer(playerID, out Player player))
             {
-                if (IsBanned(player.Id))
+                if (player.IsBanned)
                 {
-                    _bannedPlayers.Remove(player);
+                    player.Unban();
                 }
             }
         }
@@ -207,9 +166,33 @@
 
         public int Level { get; private set; }
 
+        public bool IsBanned { get; private set; }
+
+        public void Ban()
+        {
+            IsBanned = true;
+        }
+
+        public void Unban()
+        {
+            IsBanned = false;
+        }
+
         public void ShowInfo()
         {
+            ConsoleColor defaultColor = Console.ForegroundColor;
+
+            if (IsBanned)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
             Console.WriteLine($"{Id} | {Name} | {Level} ");
+            Console.ForegroundColor = defaultColor;
         }
     }
 }
