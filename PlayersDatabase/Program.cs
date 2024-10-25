@@ -68,16 +68,22 @@ namespace PlayersDatabase
 
             if (int.TryParse(Console.ReadLine(), out int startLevel))
             {
-                Random random = new();
-                int id = random.Next(0, int.MaxValue);
-
-                while (PlayerExist(id))
-                {
-                    id = random.Next(0, int.MaxValue);
-                }
-
+                int id = GenerateId();
                 _players.Add(new(name, startLevel, id));
             }
+        }
+
+        private int GenerateId()
+        {
+            string idInString = string.Empty;
+            DateTime dateTime = DateTime.Now;
+
+            idInString += dateTime.DayOfYear;
+            idInString += dateTime.Hour;
+            idInString += dateTime.Minute;
+            idInString += dateTime.Second;
+
+            return int.Parse(idInString);
         }
 
         private void RemovePlayer()
@@ -107,19 +113,6 @@ namespace PlayersDatabase
             }
 
             player = null;
-            return false;
-        }
-
-        private bool PlayerExist(int playerId)
-        {
-            foreach (var currentPlayer in _players)
-            {
-                if (currentPlayer.Id == playerId)
-                {
-                    return true;
-                }
-            }
-
             return false;
         }
 
